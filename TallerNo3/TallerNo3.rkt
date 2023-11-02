@@ -33,7 +33,7 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (expresion (number) numero-lit)
     (expresion (string) texto-lit)
     (expresion (identifier) var-exp)
-    (expresion ("if" expresion "then" expresion "else" expresion "finSI" expresion "else-if")
+    (expresion ("si" expresion "entonces" expresion "sino" expresion "finSI")
                condicional-exp)
     (expresion ("declare" "(" (separated-list identifier "=" expresion ";") ")" "{" expresion "}")
                variableLocal-exp)    
@@ -58,23 +58,57 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (primitiva-unaria ("sub1") primitiva-sub1)
     ))
 
-
+;;Punto2
+;; Define un ambiente inicial con variables (@a, @b, @c, @d, @e) y sus valores correspondientes.
 (define initial-env '(@a 1 @b 2 @c 3 @d "hola" @e "FLP"))
 
+;; Función que busca un símbolo en un ambiente dado.
 (define (buscar-variable symbol env)
+  ;; Función interna que realiza la búsqueda en el ambiente.
   (define (buscar symbol env)
+    ;; Caso base: si el ambiente está vacío, devuelve un mensaje de error.
     (cond
       [(null? env) ("Error, la variable no existe")]
+      ;; Si el símbolo coincide con el primer elemento del ambiente.
       [(equal? symbol (car env)) 
+       ;; Verifica si el ambiente tiene un número impar de elementos (indicando un error).
        (if (odd? (length env))
            ("Error, el valor de la variable está faltante")
+           ;; Si tiene un número par de elementos, devuelve el valor asociado con el símbolo.
            (cadr env))]
+      ;; Si el símbolo no coincide con el primer elemento del ambiente, realiza una llamada recursiva omitiendo los primeros dos elementos.
       [else (buscar symbol (cddr env))]))
+  ;; Llama a la función interna con el símbolo y el ambiente proporcionados como argumentos iniciales.
   (buscar symbol env))
 
-;;(buscar-variable '@a initial-env) ; salida 1
-;;(buscar-variable '@b initial-env) ; salida 2
-;;(buscar-variable '@e initial-env) ; salida "FLP"
+;; Ejemplos de uso de la función buscar-variable (descomenta para probar)
+;; (buscar-variable '@a initial-env) ; Devuelve 1
+;; (buscar-variable '@b initial-env) ; Devuelve 2
+;; (buscar-variable '@e initial-env) ; Devuelve "FLP"
+
+
+;;En una expresión numérica, 0 es falso, cualquier otro caso es verdadero. Para esto diseñe la función valor-verdad? que realiza esta verificación.
+
+(define (valor-verdad? exp)
+  (not (= exp 0)))
+
+;; Pruebas
+(valor-verdad? 0)  ; salida: #f (false)
+(valor-verdad? 1)  ; salida: #t (true)
+(valor-verdad? 10) ; salida: #t (true)
+
+
+;; Definición de una nueva sintaxis llamada expresion usando syntax-rules.
+(define-syntax expresion
+  (syntax-rules ()
+    ;; Regla para manejar la expresión condicional (Si ... entonces ... sino ... finSI).
+    [(_ (Si $cond entonces $true_exp sino $false_exp finSI))
+     (if $cond $true_exp $false_exp)]))
+
+;; Pruebas de la macro expresion.
+(expresion (Si (+ 2 3) entonces 2 sino 3 finSI)) ; Debe imprimir 2
+(expresion (Si (= (string-length "d") 4) entonces 2 sino 3 finSI)) ; Debe imprimir 3
+
 
 
 
