@@ -21,41 +21,41 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
   (number
    ("-" digit (arbno digit)) number)))
 
+;;Especificación Sintáctica (gramática)
 
+(define grammar-simple-interpreter
+  '((program (expression) a-program)
+    (expression (number) num-exp)
+    (expresion (string) texto-lit)
+    (expression (identifier) var-exp)
+    (expression
+     (primitive "(" (separated-list expression ",")")")
+     primapp-exp)
+    (expression ("if" expression "then" expression "else" expression expression "else-if")
+                if-exp)
+    (expression ("procedures" "(" (arbno identifier) ")" expression)
+                proc-exp)
+    (expresion ("assess" expresion "(" (separated-list expresion ",") ")" "finEval")
+               app-exp)
+    (expresion ("declare" "(" (separated-list identifier "=" expresion ";") ")" "{" expresion "}")
+               variableLocal-exp)    
+    (expression ( "(" expression (arbno expression) ")")
+                app-exp)
+    (expression ("let" (arbno identifier "=" expression) "in" expression)
+                let-exp)
+    
+;;características adicionales
+    (expresion
+     ("(" expresion primitiva-binaria expresion")") primapp-bin-exp)
+    (expresion
+     (primitiva-unaria "(" expresion ")") primapp-un-exp)
 
-
-
-
-
-
-
-(define (parse-numero-lit num)
-  (list 'numero num))
-
-(define (parse-texto-lit txt)
-  (list 'texto txt))
-
-(define (parse-var-exp id)
-  (list 'identificador id))
-
-(define (parse-primapp-bin-exp exp1 prim exp2)
-  (list 'primitiva-binaria exp1 prim exp2))
-
-(define (parse-primapp-un-exp prim exp)
-  (list 'primitiva-unaria prim exp))
-
-(define (parse-primitiva-binaria prim)
-  (case prim
-    ['+ 'primitiva-suma]
-    ['- 'primitiva-resta]
-    ['/ 'primitiva-div]
-    ['* 'primitiva-multi]
-    ['concat 'primitiva-concat]))
-
-(define (parse-primitiva-unaria prim)
-  (case prim
-    ['longitud 'primitiva-longitud]
-    ['add1 'primitiva-add1]
-    ['sub1 'primitiva-sub1]))
-
-
+    (primitiva-binaria ("+") primitiva-suma)
+    (primitiva-binaria ("~") primitiva-resta)
+    (primitiva-binaria ("/") primitiva-div)
+    (primitiva-binaria ("*") primitiva-multi)
+    (primitiva-binaria ("concat") primitiva-concat)
+    (primitiva-unaria ("longitud") primitiva-longitud)
+    (primitiva-unaria ("add1") primitiva-add1)
+    (primitiva-unaria ("sub1") primitiva-sub1)
+    ))
