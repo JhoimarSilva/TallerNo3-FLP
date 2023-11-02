@@ -8,45 +8,41 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
 
 ;;Especificación Léxica
 (define scanner-spec-simple-interpreter
-'((white-sp
-   (whitespace) skip)
-  (comment
-  ("%" (arbno (not #\newline))) skip)
-   (number
+  '((white-sp
+     (whitespace) skip)
+    (comment
+     ("%" (arbno (not #\newline))) skip)
+    (identifier
+     ("@" letter (arbno (or letter digit "?"))) symbol)
+    (number
+     (digit (arbno digit)) number)
+    (number
+     ("-" digit (arbno digit)) number)
+    (number
      (digit (arbno digit) "." (arbno digit)) number)
-   (number
+    (number
      (digit (arbno digit) "," (arbno digit)) number)
-  (identifier
-   (letter (arbno (or letter digit "?"))) symbol)
-  (number
-   (digit (arbno digit)) number)
-  (number
-   ("-" digit (arbno digit)) number)))
+    (string
+       ("\"" (arbno (not #\")) "\"") string)
+    ))
 
 ;;Especificación Sintáctica (gramática)
 
 (define grammar-simple-interpreter
-  '((program (expression) a-program)
-    (expression (number) num-exp)
+  '((programa (expresion) un-programa)
+    (expresion (number) numero-lit)
     (expresion (string) texto-lit)
-    (expression (identifier) var-exp)
-    (expression
-     (primitive "(" (separated-list expression ",")")")
-     primapp-exp)
-    (expression ("if" expression "then" expression "else" expression expression "else-if")
-                if-exp)
-    (expression ("procedures" "(" (arbno identifier) ")" expression)
-                proc-exp)
-    (expresion ("assess" expresion "(" (separated-list expresion ",") ")" "finEval")
-               app-exp)
+    (expresion (identifier) var-exp)
+    (expresion ("if" expresion "then" expresion "else" expresion "finSI" expresion "else-if")
+               condicional-exp)
     (expresion ("declare" "(" (separated-list identifier "=" expresion ";") ")" "{" expresion "}")
                variableLocal-exp)    
-    (expression ( "(" expression (arbno expression) ")")
-                app-exp)
-    (expression ("let" (arbno identifier "=" expression) "in" expression)
-                let-exp)
-    
-;;características adicionales
+    (expresion ("procedure" "(" (separated-list identifier ",") ")" "do" expresion "finProc")
+               procedimiento-exp)
+    (expresion ("assess" expresion "(" (separated-list expresion ",") ")" "finEval")
+               app-exp)    
+    (expresion ("let" "{" (arbno identifier "(" (separated-list identifier ",") ")" "=" expresion) "}" "in" expresion)
+               letrec-exp)
     (expresion
      ("(" expresion primitiva-binaria expresion")") primapp-bin-exp)
     (expresion
@@ -62,37 +58,25 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (primitiva-unaria ("sub1") primitiva-sub1)
     ))
 
-(define assess-expresion
-  (lambda (exp env)
-    (cases expresion exp
-      (numero-lit (num) num)
-      (texto-lit (string) string)
-      (var-exp (id) (buscar-variable env id))
-      (condicional-exp (test-exp true-exp false-exp)
-              (if (valor-verdad? (assess-expresion test-exp env))
-                  (assess-expresion true-exp env)
-                  (assess-expresion false-exp env)))
-      (variableLocal-exp (ids exps cuerpo)               
-                         (let ((values (eval-rands exps env)))                 
-                           (let ((extended-env (extend-env ids values env)))                   
-                             assess-expresion cuerpo extended-env))))      
-      (procedimiento-exp (ids body)
-                (cerradura ids body env))
-      (app-exp (rator rands)
-               (let ((proc (assess-expresion rator env))
-                     (args (eval-rands rands env)))
-                 (if (procVal? proc)
-                     (apply-procedure proc args)
-                     (eopl:error 'eval-expression
-                                 "Attempt to apply non-procedure ~s" proc))))
-      (letrec-exp (proc-names idss bodies letrec-body)
-                  (evaluar-expresion letrec-body
-                                   (extend-env-recursively proc-names idss bodies env)))
-      (primapp-bin-exp (exp1 exp-bin exp2)
-                       (let ((val1 (assess-expresion exp1 env))
-                             (val2 (assess-expresion exp2 env)))
-                         (apply-binary-primitive val1 exp-bin val2)))
-      
-      (primapp-un-exp (exp-un exp)
-                      (let ((val (assess-expresion exp env)))
-                        (apply-unary-primitive exp-un val)))))
+
+(define initial-env '(@a 1 @b 2 @c 3 @d "hola" @e "FLP"))
+
+(define (buscar-variable symbol env)
+  (define (buscar symbol env)
+    (cond
+      [(null? env) ("Error, la variable no existe")]
+      [(equal? symbol (car env)) 
+       (if (odd? (length env))
+           ("Error, el valor de la variable está faltante")
+           (cadr env))]
+      [else (buscar symbol (cddr env))]))
+  (buscar symbol env))
+
+;;(buscar-variable '@a initial-env) ; salida 1
+;;(buscar-variable '@b initial-env) ; salida 2
+;;(buscar-variable '@e initial-env) ; salida "FLP"
+
+
+
+
+
