@@ -35,12 +35,12 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (expresion (identifier) var-exp)
     (expresion ("si" expresion "entonces" expresion "sino" expresion "finSI")
                condicional-exp)
-    (expresion ("declare" "(" (separated-list identifier "=" expresion ";") ")" "{" expresion "}")
-               variableLocal-exp)    
-    (expresion ("procedure" "(" (separated-list identifier ",") ")" "do" expresion "finProc")
-               procedimiento-exp)
-    (expresion ("assess" expresion "(" (separated-list expresion ",") ")" "finEval")
-               app-exp)    
+    (expresion ("declarar" "(" (separated-list identifier "=" expresion ";") ")" "{" expresion "}")
+               variableLocal-exp)
+    (expresion ("procedimiento" "(" (separated-list identifier ",") ")" "haga" expresion "finProc")
+               procedimiento-exp) ;; Nueva regla para procedimientos
+     (expresion ("evaluar" expresion (separated-list expresion ",") "finEval")
+               app-exp)
     (expresion ("let" "{" (arbno identifier "(" (separated-list identifier ",") ")" "=" expresion) "}" "in" expresion)
                letrec-exp)
     (expresion
@@ -57,6 +57,7 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
     ))
+
 
 ;;Punto2
 ;; Define un ambiente inicial con variables (@a, @b, @c, @d, @e) y sus valores correspondientes.
@@ -108,6 +109,99 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
 ;; Pruebas de la macro expresion.
 (expresion (Si (+ 2 3) entonces 2 sino 3 finSI)) ; Debe imprimir 2
 (expresion (Si (= (string-length "d") 4) entonces 2 sino 3 finSI)) ; Debe imprimir 3
+
+;;Definición de una nueva sintaxis llamada declarar usando syntax-rules.
+
+(define-syntax declarar
+  (syntax-rules ()
+    [(_ (declarar (($id $exp)) $body ...))
+     (let (($id $exp)) $body ...)]))
+
+;; Pruebas de declaraciones de variables locales
+
+
+;;Punto6
+
+(define-datatype procVal procVal?
+  (cerradura
+   (lista-ID (list-of symbol?))
+   (exp expresion?)
+   (amb ambiente?)))
+
+(define proc-val
+  (cerradura '(@x @y @z)
+   (primapp-bin-exp (primapp-bin-exp (var-exp '@x)
+    (primitiva-suma)
+     (var-exp '@y))
+      (primitiva-suma)
+       (var-exp '@z))
+        empty-env))
+
+(procVal? proc-val);; Debe retornar #t
+
+;;Punto7
+
+;; Función para evaluar expresiones en un ambiente dado
+(define (assess-expresion exp env)
+  (cond
+    [(number? exp) exp]
+    [(string? exp) exp]
+    [(symbol? exp) (buscar-variable exp env)] ;; Utiliza tu función buscar-variable aquí
+    [(list? exp) 
+     (case (car exp)
+       [("+" "~" "/" "*")
+        (let* ([op (car exp)]
+               [arg1 (evaluar-expresion (cadr exp) env)]
+               [arg2 (evaluar-expresion (caddr exp) env)])
+          (case op
+            [("+" ) (+ arg1 arg2)]
+            [("~") (- arg1 arg2)]
+            [("/") (/ arg1 arg2)] ;; Cambiado de "\/" a "/"
+            ["*" (* arg1 arg2)] ;; Agregado caso para la multiplicación
+       [("longitud")
+        (string-length (evaluar-expresion (cadr exp) env))]
+       [("concat")
+        (string-append (evaluar-expresion (cadr exp) env)
+                       (evaluar-expresion (caddr exp) env))]))])]))
+
+
+;; Función para evaluar una aplicación de procedimiento
+(define (evaluar-app-exp exps env)
+  (let* ([proc (evaluar-expresion (car exps) env)]
+         [args (map (lambda (arg) (evaluar-expresion arg env)) (cdr exps))])
+    (apply proc args)))
+
+;; Evaluar procedimiento con la nueva regla
+(define (evaluar-procedimiento exp env)
+  (let* ([params (car exp)]
+         [body (cadr exp)]
+         [args (cddr exp)]
+         [new-env (extend-env params args env)])
+    (evaluar-expresion body new-env)))
+
+;; Reglas de evaluación para la nueva gramática
+(define evaluador
+  (make-base-namespace))
+(define proc-env (make-empty-environment))
+(define (evaluar-programa programa)
+  (define resultado (evaluar-expresion programa proc-env))
+  resultado)
+
+;; Ejemplos de uso
+(evaluar-programa
+          '(declarar (@x=2; @y=3; @a=procedimiento (@x,@y,@z) haga ((@x+@y)+@z) finProc)
+                    {evaluar @a (1,2,@x) finEval}))
+
+(evaluar-programa
+          '(declarar (@x=procedimiento (@a,@b) haga ((@a*@a) + (@b*@b)) finProc;
+                     @y=procedimiento (@x,@y) haga (@x+@y) finProc)
+                    {(evaluar @x (1,2) finEval) + (evaluar @y (2,3) finEval)}))
+
+(evaluar-programa
+          '(declarar (@x=Si (@a*@b) entonces (@d concat @e) sino longitud((@d concat @e)) finSI;
+                     @y=procedimiento (@x,@y) haga (@x+@y) finProc)
+                    {(longitud(@x) * evaluar @y (2,3) finEval)}))
+
 
 
 
