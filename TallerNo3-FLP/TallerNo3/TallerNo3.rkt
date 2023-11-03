@@ -49,6 +49,8 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
      ("(" expresion primitiva-binaria expresion")") primapp-bin-exp)
     (expresion
      (primitiva-unaria "(" expresion ")") primapp-un-exp)
+    (expresion ("llamar" identifier "(" (separated-list expresion ",") ")" "finLlamada") llamada-recursiva-exp)
+
 
     (primitiva-binaria ("+") primitiva-suma)
     (primitiva-binaria ("~") primitiva-resta)
@@ -200,7 +202,7 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     [else (my-ormap proc (cdr lst))]))
 ;;-------------------------------------------------------------------------------------------------------------
 
-;;Punto7
+;;Punto7 y 8
 ;; Función para evaluar expresiones en un ambiente dado
 (define (evaluar-expresion exp env)
   (cond
@@ -209,20 +211,28 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     [(symbol? exp) (buscar-variable exp env)] ;; Utiliza tu función buscar-variable aquí
     [(list? exp) 
      (case (car exp)
-       [("+" "~" "/" "*")
-        (let* ([op (car exp)]
-               [arg1 (evaluar-expresion (cadr exp) env)]
-               [arg2 (evaluar-expresion (caddr exp) env)])
-          (case op
-            [("+" ) (+ arg1 arg2)]
-            [("~") (- arg1 arg2)]
-            [("/") (/ arg1 arg2)] ;; Cambiado de "\/" a "/"
-            [("*") (* arg1 arg2)] ;; Agregado caso para la multiplicación
-            [("longitud")
-             (string-length (evaluar-expresion (cadr exp) env))]
-            [("concat")
-             (string-append (evaluar-expresion (cadr exp) env)
-                            (evaluar-expresion (caddr exp) env))]))])]))
+  [("+" "~" "/" "*")
+   (let* ([op (car exp)]
+          [arg1 (evaluar-expresion (cadr exp) env)]
+          [arg2 (evaluar-expresion (caddr exp) env)])
+     (case op
+       [("+" ) (+ arg1 arg2)]
+       [("~") (- arg1 arg2)]
+       [("/") (/ arg1 arg2)] ;; Cambiado de "\/" a "/"
+       [("*") (* arg1 arg2)] ;; Agregado caso para la multiplicación
+       [("longitud")
+        (string-length (evaluar-expresion (cadr exp) env))]
+       [("concat")
+        (string-append (evaluar-expresion (cadr exp) env)
+                       (evaluar-expresion (caddr exp) env))]))])])
+
+  [("llamar"
+    (let* ([nombre-funcion (cadr exp)]
+           [args (cddr exp)])
+      (define funcion (buscar-variable nombre-funcion env)) ;; Obtén la función del ambiente
+      (if (procVal? funcion) ;; Verifica si es una función
+          (apply (procVal? funcion) args) ;; Aplica la función con los argumentos
+          ("Error: No se encontró la función o no es válida"))))])
 
 
 ;; Función para evaluar una aplicación de procedimiento
@@ -251,8 +261,4 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
           '(declarar (@x=Si (@a*@b) entonces (@d concat @e) sino longitud((@d concat @e)) finSI;
                      @y=procedimiento (@x,@y) haga (@x+@y) finProc)
                     {(longitud(@x) * evaluar @y (2,3) finEval)})
-
-;;Punto8
-
-
 
