@@ -37,6 +37,8 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
                condicional-exp)
     (expresion ("declarar" "(" (separated-list identifier "=" expresion ";") ")" "{" expresion "}")
                variableLocal-exp)
+    (expresion ("llamar" identifier "(" (separated-list expresion ",") ")" "finLlamada")
+               llamada-recursiva-exp)
     (expresion ("procedimiento" "(" (separated-list identifier ",") ")" "haga" expresion "finProc")
                procedimiento-exp) ;; Nueva regla para procedimientos
      (expresion ("evaluar" expresion (separated-list expresion ",") "finEval")
@@ -114,11 +116,23 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
 
 (define-syntax declarar
   (syntax-rules ()
-    [(_ (declarar (($id $exp)) $body ...))
-     (let (($id $exp)) $body ...)]))
+    [(_ ((@id $exp) . $resto) $cuerpo)
+     (let ((@id $exp))
+       (declarar $resto $cuerpo))]
+    [(_ () $cuerpo)
+     $cuerpo]))
 
-;; Pruebas de declaraciones de variables locales
+(define-syntax expresion2
+  (syntax-rules ()
+    [(_ (declarar $decls) $cuerpo)
+     (declarar $decls $cuerpo)]
+    [(_ $exp)
+     $exp]))
+; Pruebas de declaraciones de variables locales
 
+(expresion2(declarar ((@x 2) (@y 3) (@a 7))(+ @a (- @x @y))))
+
+(expresion2(declarar ((@x 2) (@y 3) (@a 7))(+ @a (- @x @y))))
 
 ;;Punto6
 
@@ -190,7 +204,7 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
 ;; Ejemplos de uso
 (evaluar-programa
           '(declarar (@x=2; @y=3; @a=procedimiento (@x,@y,@z) haga ((@x+@y)+@z) finProc)
-                    {evaluar @a (1,2,@x) finEval}))
+                    {evaluar @a (1,2,@x) finEval})))
 
 (evaluar-programa
           '(declarar (@x=procedimiento (@a,@b) haga ((@a*@a) + (@b*@b)) finProc;
@@ -203,6 +217,22 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
                     {(longitud(@x) * evaluar @y (2,3) finEval)}))
 
 
+;;Punto8
+
+(define (evaluar-expresion exp env)
+  (cond
+    ...
+    [(list? exp)
+     (case (car exp)
+       ...
+       [("llamar"
+         (let* ([nombre-funcion (cadr exp)]
+                [args (cddr exp)])
+           (define funcion (buscar-variable nombre-funcion env)) ;; Obtén la función del ambiente
+           (if (procVal? funcion) ;; Verifica si es una función
+               (apply (cerradura-exp funcion) args) ;; Aplica la función con los argumentos
+               ("Error: No se encontró la función o no es válida"))))]
+       ...)]))
 
 
 
