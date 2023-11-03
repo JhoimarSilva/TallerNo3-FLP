@@ -262,3 +262,73 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
                      @y=procedimiento (@x,@y) haga (@x+@y) finProc)
                     {(longitud(@x) * evaluar @y (2,3) finEval)})
 
+
+
+#|
+
+Utilización del lenguaje
+
+A)
+
+(define areaCirculo (@radio)
+  haga
+    (def @pi 3.14159265359) ; Definimos una variable para el valor de Pi
+    (def @area (* @pi (* @radio @radio))) ; Calculamos el área del círculo
+  finProc)
+
+;; Ejemplo de uso:
+(declarar (@radio 2.5;
+           @areaCirculo procedimiento (@r) haga (@r * @r * @pi) finProc)
+          {evaluar @areaCirculo (@radio) finEval})
+
+B) 
+
+
+
+C)
+
+(define sumar (@x @y)
+  haga
+    (si (isZero? @y) entonces
+      @x ; Caso base: cuando @y es igual a cero, devuelve @x
+      sino
+      (sumar (add1 @x) (predecessor @y))) ; Llamada recursiva sumando 1 a @x y restando 1 a @y
+  finProc)
+
+;; Ejemplo de uso:
+(declarar (@resultado (sumar 4 5))
+          {evaluar @resultado finEval})
+
+D)
+
+
+
+E)
+
+;; Declaración de @integrantes
+(def @integrantes
+  haga
+    "Jhoimar Silva y Estiven Martinez" ; Retorna el string con los nombres de los integrantes
+  finProc)
+
+;; Declaración de @saludar, que recibe un procedimiento @proc como argumento
+(def @saludar (@proc)
+  haga
+    (def @prefijo "Hola: ") ; Prefijo "Hola: "
+    (def @palabra (evaluar @proc ())) ; Evaluar el procedimiento para obtener el string
+    (procedimiento ()
+      haga
+        (@prefijo concat @palabra) ; Retorna el resultado con el prefijo "Hola:"
+      finProc)
+  finProc)
+
+;; Creación del decorador @decorate aplicando @saludar a @integrantes
+(def @decorate (evaluar @saludar (@integrantes)))
+
+;; Invocación del decorador @decorate para obtener el saludo
+(evaluar @decorate ()) ; Deberá retornar "Hola: Jhoimar Silva y Estiven Martinez"
+
+F)
+
+
+|#
