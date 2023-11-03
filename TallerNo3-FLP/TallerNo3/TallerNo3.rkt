@@ -199,10 +199,10 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     [(proc (car lst)) #t]
     [else (my-ormap proc (cdr lst))]))
 ;;-------------------------------------------------------------------------------------------------------------
-;;Punto7
 
+;;Punto7
 ;; Función para evaluar expresiones en un ambiente dado
-(define (assess-expresion exp env)
+(define (evaluar-expresion exp env)
   (cond
     [(number? exp) exp]
     [(string? exp) exp]
@@ -232,55 +232,27 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (apply proc args)))
 
 ;; Evaluar procedimiento con la nueva regla
-(define (evaluar-procedimiento2 exp env)
+(define (evaluar-procedimiento1 exp env)
   (let* ([params (car exp)]
          [body (cadr exp)]
          [args (cddr exp)]
          [new-env (extend-env params args env)])
     (evaluar-expresion body new-env)))
 
-;; Reglas de evaluación para la nueva gramática
-(define evaluador
-  (make-base-namespace))
-(define proc-env (make-empty-environment))
-(define (evaluar-programa programa)
-  (define resultado (evaluar-expresion programa proc-env))
-  resultado)
 
 ;; Ejemplos de uso
-(evaluar-programa
-          '(declarar (@x=2; @y=3; @a=procedimiento (@x,@y,@z) haga ((@x+@y)+@z) finProc)
-                    {evaluar @a (1,2,@x) finEval})))
+         '(declarar (@x=2 @y=3 @a=procedimiento (@x,@y,@z) haga ((@x+@y)+@z) finProc)
+                    {evaluar @a (1,2,@x) finEval})
 
-(evaluar-programa
           '(declarar (@x=procedimiento (@a,@b) haga ((@a*@a) + (@b*@b)) finProc;
                      @y=procedimiento (@x,@y) haga (@x+@y) finProc)
-                    {(evaluar @x (1,2) finEval) + (evaluar @y (2,3) finEval)}))
+                    {(evaluar @x (1,2) finEval) + (evaluar @y (2,3) finEval)})
 
-(evaluar-programa
           '(declarar (@x=Si (@a*@b) entonces (@d concat @e) sino longitud((@d concat @e)) finSI;
                      @y=procedimiento (@x,@y) haga (@x+@y) finProc)
-                    {(longitud(@x) * evaluar @y (2,3) finEval)}))
-
+                    {(longitud(@x) * evaluar @y (2,3) finEval)})
 
 ;;Punto8
-
-(define (evaluar-expresion exp env)
-  (cond
-    ...
-    [(list? exp)
-     (case (car exp)
-       ...
-       [("llamar"
-         (let* ([nombre-funcion (cadr exp)]
-                [args (cddr exp)])
-           (define funcion (buscar-variable nombre-funcion env)) ;; Obtén la función del ambiente
-           (if (procVal? funcion) ;; Verifica si es una función
-               (apply (cerradura-exp funcion) args) ;; Aplica la función con los argumentos
-               ("Error: No se encontró la función o no es válida"))))]
-       ...)]))
-
-
 
 
 
