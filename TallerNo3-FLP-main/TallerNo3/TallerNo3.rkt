@@ -153,10 +153,13 @@ Tenga en cuenta que:
 
 ;; Definición de una nueva sintaxis llamada expresion usando syntax-rules.
 (define-syntax expresion
-  (syntax-rules ()
+  (syntax-rules ( )
     ;; Regla para manejar la expresión condicional (Si ... entonces ... sino ... finSI).
+    [(_ (declarar ($id $exp)  $resto) $cuerpo)
+     (let (($id $exp)) $cuerpo)]
     [(_ (Si $cond entonces $true_exp sino $false_exp finSI))
      (if $cond $true_exp $false_exp)]))
+
 
 ;; Pruebas de la macro expresion.
 (expresion (Si (+ 2 3) entonces 2 sino 3 finSI)) ; Debe imprimir 2
@@ -166,9 +169,22 @@ Tenga en cuenta que:
 
 (define-syntax declarar
   (syntax-rules ()
-    [(_ (declarar (($id $exp)) $body ...))
-     (let (($id $exp)) $body ...)]))
+    [(_ ((@id $exp) . $resto) $cuerpo)
+     (let ((@id $exp))
+       (declarar $resto $cuerpo))]
+    [(_ () $cuerpo)
+     $cuerpo]))
 
+(define-syntax expresion2
+  (syntax-rules ()
+    [(_ (declarar $decls) $cuerpo)
+     (declarar $decls $cuerpo)]
+    [(_ $exp)
+     $exp]))
 ; Pruebas de declaraciones de variables locales
+
+(expresion2(declarar ((@x 2) (@y 3) (@a 7))(+ @a (- @x @y))))
+
+(expresion2(declarar ((@x 2) (@y 3) (@a 7))(+ @a (- @x @y))))
 
 
