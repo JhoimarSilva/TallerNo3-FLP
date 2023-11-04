@@ -274,23 +274,6 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
                     {(longitud(@x) * evaluar @y (2,3) finEval)})
 
 
-let-recursivo {
-  @multiplicar(@x,@y) = Si @x entonces
-   (@y + evaluar @multiplicar(sub1(@x),@y) finEval)
-   sino 0 finSI
-} en evaluar @multiplicar(10,3) finEval
-
-% RESTAR
-let-recursivo {
-  @restar(@x,@y) = Si @y entonces
-   evaluar @restar(sub1(@x), sub1(@y)) finEval
-   sino @x finSI
-} en evaluar @restar(10,3) finEval
-
-
-
-
-
 #|
 
 ;;Utilización del lenguaje
@@ -307,6 +290,19 @@ let-recursivo {
 
 B)
 
+(define (@factorial-recursivo n)
+  (if (= n 0) 
+      1
+      (* n (@factorial-recursivo (- n 1)))))
+
+(define @resultado-factorial-5
+  (@factorial-recursivo 5);;Debería imprimir 120
+)
+
+(define @resultado-factorial-10
+  (@factorial-recursivo 10);;Debería imprimir 3628800
+)
+
 
 
 C)
@@ -322,6 +318,30 @@ C)
 
 D)
 
+(define (add1 x)
+  (+ x 1))
+
+(define (sub1 x)
+  (- x 1))
+
+(define (@restar a b)
+  (if (= b 0)
+      a
+      (@restar (sub1 a) (sub1 b))))
+
+(define (@multiplicar a b)
+  (if (= b 0)
+      0
+      (+ a (@multiplicar a (sub1 b)))))
+
+(define resultado-resta (@restar 10 3))
+"Resultado de evaluar @restar (10, 3) finEval: "
+resultado-resta;;Deberia imprimir 7
+
+
+(define resultado-multiplicacion (@multiplicar 10 3))
+"Resultado de evaluar @multiplicar (10, 3) finEval: "
+resultado-multiplicacion;;Deberia imprimir 30
 
 
 E)
