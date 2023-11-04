@@ -6,6 +6,12 @@ Jhoimar Silva Torres:2177167
 https://github.com/JhoimarSilva/TallerNo3-FLP.git
 |#
 
+;; Definición de las funciones zero, isZero?, successor y predecessor
+(define (zero) 0)
+(define (isZero? n) (= n 0))
+(define (successor n) (+ n 1))
+(define (predecessor n) (- n 1))
+
 ;;Especificación Léxica
 (define scanner-spec-simple-interpreter
   '((white-sp
@@ -14,6 +20,8 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
      ("%" (arbno (not #\newline))) skip)
     (identifier
      ("@" letter (arbno (or letter digit "?"))) symbol)
+    (identifier
+     ("haga" symbol) ("finProc" symbol) )
     (number
      (digit (arbno digit)) number)
     (number
@@ -23,7 +31,7 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
     (number
      (digit (arbno digit) "," (arbno digit)) number)
     (string
-       ("\"" (arbno (not #\")) "\"") string)
+     ("\"" (arbno (not #\")) "\"") string)
     ))
 
 ;;Especificación Sintáctica (gramática)
@@ -41,6 +49,8 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
                llamada-recursiva-exp)
     (expresion ("procedimiento" "(" (separated-list identifier ",") ")" "haga" expresion "finProc")
                procedimiento-exp) ;; Nueva regla para procedimientos
+    (expresion ("haga" expresion "finProc") ; Nueva regla para "haga"
+               haga-exp)
      (expresion ("evaluar" expresion (separated-list expresion ",") "finEval")
                app-exp)
     (expresion ("let" "{" (arbno identifier "(" (separated-list identifier ",") ")" "=" expresion) "}" "in" expresion)
@@ -66,6 +76,7 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
 ;;Punto2
 ;; Define un ambiente inicial con variables (@a, @b, @c, @d, @e) y sus valores correspondientes.
 (define ambiente '(@a 1 @b 2 @c 3 @d "hola" @e "FLP"))
+
 
 ;; Función que busca un símbolo en un ambiente dado.
 (define (buscar-variable symbol env)
@@ -262,42 +273,34 @@ https://github.com/JhoimarSilva/TallerNo3-FLP.git
                      @y=procedimiento (@x,@y) haga (@x+@y) finProc)
                     {(longitud(@x) * evaluar @y (2,3) finEval)})
 
-
-
 #|
 
-Utilización del lenguaje
+;;Utilización del lenguaje
 
-A)
-
-(define areaCirculo (@radio)
-  haga
-    (def @pi 3.14159265359) ; Definimos una variable para el valor de Pi
-    (def @area (* @pi (* @radio @radio))) ; Calculamos el área del círculo
-  finProc)
+;;A)
+(define (areaCirculo radio)
+  (let ((pi 3.14159265359)) ; Definimos una variable local para el valor de Pi
+    (let ((area (* pi (* radio radio)))) ; Calculamos el área del círculo
+      area))) ; Devolvemos el área como resultado de la función
 
 ;; Ejemplo de uso:
-(declarar (@radio 2.5;
-           @areaCirculo procedimiento (@r) haga (@r * @r * @pi) finProc)
-          {evaluar @areaCirculo (@radio) finEval})
+(define radio 2.5)
+(display (areaCirculo radio))
 
-B) 
+B)
 
 
 
 C)
+(define (sumar n m)
+  
+  (if (isZero? m)
+      n
+      (sumar (successor n) (predecessor m))))
 
-(define sumar (@x @y)
-  haga
-    (si (isZero? @y) entonces
-      @x ; Caso base: cuando @y es igual a cero, devuelve @x
-      sino
-      (sumar (add1 @x) (predecessor @y))) ; Llamada recursiva sumando 1 a @x y restando 1 a @y
-  finProc)
-
-;; Ejemplo de uso:
-(declarar (@resultado (sumar 4 5))
-          {evaluar @resultado finEval})
+;; Llamada a la función recursiva
+(define resultado (sumar 4 5))
+(display resultado)
 
 D)
 
@@ -305,30 +308,22 @@ D)
 
 E)
 
-;; Declaración de @integrantes
-(def @integrantes
-  haga
-    "Jhoimar Silva y Estiven Martinez" ; Retorna el string con los nombres de los integrantes
-  finProc)
+(define (decorador-hola prefix)
+  (define (decorar proc)
+    (define (decorado)
+      (string-append prefix (proc)))
+    decorado)
+  decorar)
 
-;; Declaración de @saludar, que recibe un procedimiento @proc como argumento
-(def @saludar (@proc)
-  haga
-    (def @prefijo "Hola: ") ; Prefijo "Hola: "
-    (def @palabra (evaluar @proc ())) ; Evaluar el procedimiento para obtener el string
-    (procedimiento ()
-      haga
-        (@prefijo concat @palabra) ; Retorna el resultado con el prefijo "Hola:"
-      finProc)
-  finProc)
+(define (integrantes)
+  "Estiven Martinez Y Jhoimar Silva")
 
-;; Creación del decorador @decorate aplicando @saludar a @integrantes
-(def @decorate (evaluar @saludar (@integrantes)))
+(define saludar
+  (decorador-hola "Hola:"))
 
-;; Invocación del decorador @decorate para obtener el saludo
-(evaluar @decorate ()) ; Deberá retornar "Hola: Jhoimar Silva y Estiven Martinez"
+(define decorate
+  (saludar integrantes))
 
-F)
-
+(display (decorate)) ; Deberá retornar "Hola: Estiven Martinez y Jhoimar Silva"
 
 |#
